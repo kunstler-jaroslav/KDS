@@ -17,6 +17,10 @@ class Sender:
         self.ip_dst = ip_dst
         self.port_dst = port_dst
 
+        self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s_rec.bind((self.ip_src, self.port_src))
+
     @staticmethod
     def get_local_ip():
 
@@ -39,56 +43,19 @@ class Sender:
             print(f"Error getting local IP address: {e}")
             return None
 
-    def receive_file(self):
-        try:
-            # Create UDP socket
-            udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            udp_socket.bind((self.ip_src, self.port_src))
-            print(f"Waiting for data on port {self.port_src}...")
-            rec = False
-
-            while not rec:
-                # Receive data along with sender's address
-                serialized_packet, sender_address = udp_socket.recvfrom(1024)
-
-                # Deserialize the Packet object using pickle
-                received_packet = pickle.loads(serialized_packet)
-
-                # print(f"Received packet from {sender_address}: {received_packet.__dict__}")
-
-                pack = PacketCreator.parse_received(received_packet.__dict__)
-
-                print(pack.packet_type)
-
-                if pack.packet_type == PacketTypes.ack:
-                    print(pack.packet_type)
-                    rec = True
-                if pack.packet_type == PacketTypes.nack:
-                    print(pack.packet_type)
-                    rec = True
-                rec = True
-
-        except Exception as e:
-            print(f"Error receiving data: {e}")
-        finally:
-            udp_socket.close()
+    def receive_file(self, ):
+        pass
 
     def __send_packet(self, packet):
         try:
-            # Create a TCP socket
-            udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
             # Serialize the Packet object using pickle
             serialized_packet = pickle.dumps(packet)
-            print("{} sent to {}:{}".format(len(serialized_packet), self.ip_dst, self.port_dst))
+            crc = PacketCreator.get_CRC(serialized_packet)
+            print("{} sent to {}:{}".format(len(crc + serialized_packet), self.ip_dst, self.port_dst))
 
             # Send the data to the receiver's address
-            udp_socket.sendto(serialized_packet, (self.ip_dst, self.port_dst))
-
-            udp_socket.close()
-
-            # self.receive_file()
-
+            self.s_send.sendto(crc + serialized_packet, (self.ip_dst, self.port_dst))
+            ack, _ = self.s_rec.recvfrom(1024)
         except Exception as e:
             print(f"Error sending packet: {e}")
 
@@ -100,13 +67,13 @@ class Sender:
         packet_to_send = PacketCreator.start_packet(data)
         self.__send_packet(packet_to_send)
         # Send file data
-        blocks = [data[i:i + 1024-103] for i in range(0, len(data), 1024-103)]
+        blocks = [data[i:i + 1024-107] for i in range(0, len(data), 1024-107)]
         total = len(data)
         sent = 0
         for i in range(len(blocks)):
             packet_to_send = PacketCreator.data_packet(blocks[i])
             self.__send_packet(packet_to_send)
-            sent += 1024 - 103
+            sent += 1024 - 107
             print("sent {}%".format((sent / total * 100).__round__(2)))
             os.system('cls' if os.name == 'nt' else 'clear')
         # Send stop
@@ -122,12 +89,13 @@ class Sender:
 
 if __name__ == "__main__":
     # Sender
-    local_ip = Sender.get_local_ip()
-    local_port = 4999
+    # local_ip = Sender.get_local_ip()
+    local_ip = "127.0.0.1"
+    local_port = 50001  # 50001
 
     # Receiver
     destination_ip = "127.0.0.1"
-    destination_port = 5000
+    destination_port = 50000
 
     bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\dog.jpg")
     fn = "dog.jpg"

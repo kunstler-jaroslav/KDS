@@ -68,7 +68,7 @@ class Sender:
             print("sent {}%".format((sent/total * 100).__round__(2)))
             packet_to_send = PacketCreator.data_packet(blocks[i])
             self.__send_packet(packet_to_send)
-            time.sleep(0.001)
+            time.sleep(0.00001)
         # Send stop
         packet_to_send = PacketCreator.stop_packet()
         self.__send_packet(packet_to_send)
@@ -81,11 +81,12 @@ class Sender:
 
 
 if __name__ == "__main__":
-    bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\nature.jpg")
-    destination_host = "127.0.0.1"
+    bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\dog.jpg")
+    destination_host = "10.0.0.223"
     destination_port = 5000
     local_ip = Sender.get_local_ip()
-    fn = "nature.jpg"
+    print(local_ip)
+    fn = "dog.jpg"
     if local_ip:
         sender = Sender(local_ip, destination_host, destination_port)
         sender.send_file(bt, file_name=fn)

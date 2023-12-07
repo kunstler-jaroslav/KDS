@@ -1,4 +1,6 @@
 from enum import Enum
+import pickle
+import zlib
 
 
 class PacketTypes(Enum):
@@ -16,6 +18,9 @@ class Packet:
         self.packet_type = packet_type
         self.length = length
         self.data = data
+
+    def get_content(self):
+        return [self.packet_type, self.length, self.data]
 
 
 class PacketCreator:
@@ -62,6 +67,16 @@ class PacketCreator:
         pack = Packet(packet_type=dictionary['packet_type'], length=dictionary['length'], data=dictionary['data'])
         return pack
 
+    @staticmethod
+    def get_CRC(data):
+        # Calculate the CRC-32 checksum for the given data
+        crc_value = zlib.crc32(data)
+        # Ensure the result is a positive integer
+        crc_value = crc_value & 0xFFFFFFFF
+        # print(crc_value)
+        hexdump = crc_value.to_bytes(4, byteorder='big')
+        crc_hex = hexdump.rjust(4, b'0')
+        return crc_hex
 
 class File:
 
