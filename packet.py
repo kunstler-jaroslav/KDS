@@ -10,6 +10,7 @@ class PacketTypes(Enum):
     name = 3
     ack = 4
     nack = 5
+    hash = 6
 
 
 class Packet:
@@ -65,6 +66,13 @@ class PacketCreator:
     @staticmethod
     def parse_received(dictionary):
         pack = Packet(packet_type=dictionary['packet_type'], length=dictionary['length'], data=dictionary['data'])
+        return pack
+
+    @staticmethod
+    def hash_packet(file):
+        # TODO calculate hash of file data
+        hash = "Hash"
+        pack = Packet(PacketTypes.hash, len(hash), hash)
         return pack
 
     @staticmethod

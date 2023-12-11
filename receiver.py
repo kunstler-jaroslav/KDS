@@ -73,11 +73,11 @@ class Receiver:
                 # Receive data along with sender's address
                 serialized_packet, sender_address = self.s_rec.recvfrom(1024)
 
-                first_four_bytes, serialized_packet = serialized_packet[:4], serialized_packet[4:]
+                CRC_received, serialized_packet = serialized_packet[:4], serialized_packet[4:]
 
                 # print(first_four_bytes)
                 # print(PacketCreator.get_CRC(serialized_packet))
-                if first_four_bytes != PacketCreator.get_CRC(serialized_packet):
+                if CRC_received != PacketCreator.get_CRC(serialized_packet):
                     print("STOOOOOOOOOOOOOOOOOOOOOOOOOOP")
 
                 else:
