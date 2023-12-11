@@ -73,9 +73,12 @@ class Sender:
         for i in range(len(blocks)):
             packet_to_send = PacketCreator.data_packet(blocks[i])
             self.__send_packet(packet_to_send)
-            sent += 1024 - 107
+            sent += len(blocks[i]) - 107
             print("sent {}%".format((sent / total * 100).__round__(2)))
             os.system('cls' if os.name == 'nt' else 'clear')
+        # Send file hash
+        packet_to_send = PacketCreator.hash_packet(data)
+        self.__send_packet(packet_to_send)
         # Send stop
         packet_to_send = PacketCreator.stop_packet()
         self.__send_packet(packet_to_send)
@@ -97,7 +100,7 @@ if __name__ == "__main__":
     destination_ip = "127.0.0.1"
     destination_port = 50000
 
-    bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\dog.jpg")
+    bt = Sender.file_to_byte_string(r"/home/frederik/Desktop/dog.jpg")
     fn = "dog.jpg"
 
     if local_ip:

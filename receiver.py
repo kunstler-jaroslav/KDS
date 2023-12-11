@@ -61,6 +61,10 @@ class Receiver:
         packet_to_send = PacketCreator.ack_packet()
         self.__send_packet(packet_to_send)
 
+    def send_nack(self):
+        packet_to_send = PacketCreator.nack_packet()
+        self.__send_packet(packet_to_send)
+
     def receive_file(self):
         try:
             file = File()
@@ -79,6 +83,7 @@ class Receiver:
                 # print(PacketCreator.get_CRC(serialized_packet))
                 if CRC_received != PacketCreator.get_CRC(serialized_packet):
                     print("STOOOOOOOOOOOOOOOOOOOOOOOOOOP")
+                    self.send_nack()
 
                 else:
 
@@ -102,6 +107,12 @@ class Receiver:
                     if pack.packet_type == PacketTypes.data:
                         file.add_data(pack.data)
                         received += pack.length
+                        self.send_ack()
+                    if pack.packet_type == PacketTypes.hash:
+                        hash_from_received = PacketCreator.get_hash(file.data)
+                        assert pack.data == hash_from_received
+                        print(hash_from_received)
+                        print("Hash matches")
                         self.send_ack()
                     if pack.packet_type == PacketTypes.stop:
                         file.save_file()

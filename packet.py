@@ -1,6 +1,7 @@
 from enum import Enum
 import pickle
 import zlib
+import hashlib
 
 
 class PacketTypes(Enum):
@@ -68,12 +69,14 @@ class PacketCreator:
         pack = Packet(packet_type=dictionary['packet_type'], length=dictionary['length'], data=dictionary['data'])
         return pack
 
+
     @staticmethod
-    def hash_packet(file):
+    def hash_packet(file_contents):
         # TODO calculate hash of file data
-        hash = "Hash"
-        pack = Packet(PacketTypes.hash, len(hash), hash)
+        md5_hash = hashlib.md5(file_contents).hexdigest()
+        pack = Packet(PacketTypes.hash, len(md5_hash), md5_hash)
         return pack
+
 
     @staticmethod
     def get_CRC(data):
@@ -85,6 +88,12 @@ class PacketCreator:
         hexdump = crc_value.to_bytes(4, byteorder='big')
         crc_hex = hexdump.rjust(4, b'0')
         return crc_hex
+
+    @staticmethod
+    def get_hash(data):
+        md5_hash = hashlib.md5(data).hexdigest()
+        return md5_hash
+
 
 class File:
 
