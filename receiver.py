@@ -23,6 +23,8 @@ class Receiver:
         self.s_rec.bind((self.ip_src, self.port_src))
 
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s_send.settimeout(5)
+        self.s_rec.settimeout(5)
 
     @staticmethod
     def get_local_ip():
@@ -49,10 +51,11 @@ class Receiver:
         try:
             # Serialize the Packet object using pickle
             serialized_packet = pickle.dumps(packet)
-            print("{} sent to {}:{}".format(len(serialized_packet), self.ip_dst, self.port_dst))
+            crc = PacketCreator.get_CRC(serialized_packet)
+            print("{} sent to {}:{}".format(len(crc + serialized_packet), self.ip_dst, self.port_dst))
 
             # Send the data to the receiver's address
-            self.s_send.sendto(serialized_packet, (self.ip_dst, self.port_dst))
+            self.s_send.sendto(crc + serialized_packet, (self.ip_dst, self.port_dst))
 
         except Exception as e:
             print(f"Error sending packet: {e}")
@@ -75,8 +78,8 @@ class Receiver:
 
             while True:
                 # Receive data along with sender's address
-                serialized_packet, sender_address = self.s_rec.recvfrom(1024)
 
+                serialized_packet, sender_address = self.s_rec.recvfrom(1024)
                 CRC_received, serialized_packet = serialized_packet[:4], serialized_packet[4:]
 
                 # print(first_four_bytes)

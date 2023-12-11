@@ -20,9 +20,13 @@ class Packet:
         self.packet_type = packet_type
         self.length = length
         self.data = data
+        #self.id = None
 
     def get_content(self):
-        return [self.packet_type, self.length, self.data]
+        return [self.packet_type, self.length, self.data, self.id]
+
+    #def set_id(self, id):
+     #   self.id = id
 
 
 class PacketCreator:

@@ -20,6 +20,8 @@ class Sender:
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec.bind((self.ip_src, self.port_src))
+        self.s_send.settimeout(5)
+        self.s_rec.settimeout(5)
 
     @staticmethod
     def get_local_ip():
@@ -43,45 +45,73 @@ class Sender:
             print(f"Error getting local IP address: {e}")
             return None
 
-    def receive_file(self, ):
-        pass
+
+    def check_ack(self):
+        try:
+            ack, _ = self.s_rec.recvfrom(1024)
+            CRC_ack, serialized_ack = ack[:4], ack[4:]
+            if CRC_ack != PacketCreator.get_CRC(serialized_ack):
+                print("Ack CRC mismatch")
+                return False
+                # Deserialize Ack packet sent from receiver:
+            received_ack = pickle.loads(serialized_ack)
+            pack = PacketCreator.parse_received(received_ack.__dict__)
+            if pack.packet_type == PacketTypes.nack:
+                print("Received negative acknowledgement, sending packet again..")
+                return False
+            if pack.packet_type == PacketTypes.ack:
+                print("Ack received")
+                return True
+        except socket.timeout:
+            print("Timeout. Sending packet again.")
+            return False
+
+
+    def __send_packet_with_ack(self, packet):
+        self.__send_packet(packet)
+        while not self.check_ack():
+            self.__send_packet(packet)
+
 
     def __send_packet(self, packet):
         try:
             # Serialize the Packet object using pickle
             serialized_packet = pickle.dumps(packet)
             crc = PacketCreator.get_CRC(serialized_packet)
+            #print("Serialized packet:", serialized_packet)
+            #print("Crc:", crc)
             print("{} sent to {}:{}".format(len(crc + serialized_packet), self.ip_dst, self.port_dst))
 
             # Send the data to the receiver's address
             self.s_send.sendto(crc + serialized_packet, (self.ip_dst, self.port_dst))
-            ack, _ = self.s_rec.recvfrom(1024)
+
         except Exception as e:
             print(f"Error sending packet: {e}")
+
 
     def send_file(self, data, file_name):
         # Send name
         packet_to_send = PacketCreator.name_packet(file_name)
-        self.__send_packet(packet_to_send)
+        self.__send_packet_with_ack(packet_to_send)
         # Send start
         packet_to_send = PacketCreator.start_packet(data)
-        self.__send_packet(packet_to_send)
+        self.__send_packet_with_ack(packet_to_send)
         # Send file data
         blocks = [data[i:i + 1024-107] for i in range(0, len(data), 1024-107)]
         total = len(data)
         sent = 0
         for i in range(len(blocks)):
             packet_to_send = PacketCreator.data_packet(blocks[i])
-            self.__send_packet(packet_to_send)
-            sent += len(blocks[i]) - 107
+            self.__send_packet_with_ack(packet_to_send)
+            sent += len(blocks[i])
             print("sent {}%".format((sent / total * 100).__round__(2)))
             os.system('cls' if os.name == 'nt' else 'clear')
         # Send file hash
         packet_to_send = PacketCreator.hash_packet(data)
-        self.__send_packet(packet_to_send)
+        self.__send_packet_with_ack(packet_to_send)
         # Send stop
         packet_to_send = PacketCreator.stop_packet()
-        self.__send_packet(packet_to_send)
+        self.__send_packet_with_ack(packet_to_send)
 
     @staticmethod
     def file_to_byte_string(file_path):
