@@ -23,8 +23,9 @@ class Receiver:
         self.s_rec.bind((self.ip_src, self.port_src))
 
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s_send.settimeout(5)
-        self.s_rec.settimeout(5)
+        self.s_send.settimeout(10)
+        self.s_rec.settimeout(10)
+        self.last_rcvd_id = -1
 
     @staticmethod
     def get_local_ip():
@@ -80,13 +81,17 @@ class Receiver:
                 # Receive data along with sender's address
 
                 serialized_packet, sender_address = self.s_rec.recvfrom(1024)
-                CRC_received, serialized_packet = serialized_packet[:4], serialized_packet[4:]
-
+                CRC_received, id_received, serialized_packet = serialized_packet[:4], serialized_packet[4:5], serialized_packet[5:]
+                print("id:", id_received)
                 # print(first_four_bytes)
                 # print(PacketCreator.get_CRC(serialized_packet))
                 if CRC_received != PacketCreator.get_CRC(serialized_packet):
-                    print("STOOOOOOOOOOOOOOOOOOOOOOOOOOP")
+                    print("Received wrong CRC, sending nack")
                     self.send_nack()
+
+                if id_received == self.last_rcvd_id:
+                    print("Received the same packet twice")
+                    self.send_ack()
 
                 else:
 
@@ -122,6 +127,7 @@ class Receiver:
                         self.send_ack()
                         received = 0
 
+                    self.last_rcvd_id +=1
                     print("received {}%".format((received / total * 100).__round__(2)))
 
         except Exception as e:
