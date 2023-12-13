@@ -16,7 +16,7 @@ class Receiver:
         print(port_src)
 
         # Sender
-        self.ip_dst = None
+        self.ip_dst = "192.168.43.196"
         self.port_dst = port_dst
 
         self.s_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -24,7 +24,7 @@ class Receiver:
 
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_send.settimeout(10)
-        self.s_rec.settimeout(10)
+        self.s_rec.settimeout(100)
         self.last_rcvd_id = -1
 
     @staticmethod
@@ -70,26 +70,31 @@ class Receiver:
         self.__send_packet(packet_to_send)
 
     def receive_file(self):
-        try:
-            file = File()
-            print(f"Waiting for data on port {self.port_src}...")
 
-            total = 1
-            received = 0
+        file = File()
+        print(f"Waiting for data on port {self.port_src}...")
 
-            while True:
-                # Receive data along with sender's address
+        total = 1
+        received = 0
 
-                serialized_packet, sender_address = self.s_rec.recvfrom(1024)
-                CRC_received, id_received, serialized_packet = serialized_packet[:4], serialized_packet[4:5], serialized_packet[5:]
-                print("id:", id_received)
-                # print(first_four_bytes)
-                # print(PacketCreator.get_CRC(serialized_packet))
-                if CRC_received != PacketCreator.get_CRC(serialized_packet):
-                    print("Received wrong CRC, sending nack")
-                    self.send_nack()
+        while True:
+            # Receive data along with sender's address
 
-                if id_received == self.last_rcvd_id:
+            serialized_packet, sender_address = self.s_rec.recvfrom(1024)
+            CRC_received, id_received, serialized_packet = serialized_packet[:4], serialized_packet[
+                                                                                  4:5], serialized_packet[5:]
+            print("id:", id_received)
+            # print(first_four_bytes)
+            # print(PacketCreator.get_CRC(serialized_packet))
+            if CRC_received != PacketCreator.get_CRC(serialized_packet):
+                print("Received wrong CRC, sending nack")
+                self.send_nack()
+
+            else:
+                print("new {}, last {}".format(id_received, self.last_rcvd_id))
+                integer_value = int.from_bytes(id_received, byteorder='big')
+                print("new {}, last {}".format(integer_value, self.last_rcvd_id))
+                if integer_value == self.last_rcvd_id:
                     print("Received the same packet twice")
                     self.send_ack()
 
@@ -113,6 +118,7 @@ class Receiver:
                         total = pack.length
                         self.send_ack()
                     if pack.packet_type == PacketTypes.data:
+                        print("Saved data {}".format(id_received))
                         file.add_data(pack.data)
                         received += pack.length
                         self.send_ack()
@@ -127,15 +133,12 @@ class Receiver:
                         self.send_ack()
                         received = 0
 
-                    self.last_rcvd_id +=1
+                    self.last_rcvd_id += 1
                     print("received {}%".format((received / total * 100).__round__(2)))
-
-        except Exception as e:
-            print(f"Error receiving data: {e}")
 
 
 if __name__ == "__main__":
-    #local_ip = Receiver.get_local_ip()
+    # local_ip = Receiver.get_local_ip()
     local_ip = "192.168.43.195"
     listening_port = 15000
 

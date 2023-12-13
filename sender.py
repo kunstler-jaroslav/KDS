@@ -46,7 +46,6 @@ class Sender:
             print(f"Error getting local IP address: {e}")
             return None
 
-
     def check_ack(self):
         try:
             ack, _ = self.s_rec.recvfrom(1024)
@@ -62,18 +61,16 @@ class Sender:
                 return False
             if pack.packet_type == PacketTypes.ack:
                 print("Ack received")
-                self.packet_id +=1
+                self.packet_id += 1
                 return True
         except socket.timeout:
             print("Timeout. Sending packet again.")
             return False
 
-
     def __send_packet_with_ack(self, packet):
         self.__send_packet(packet)
         while not self.check_ack():
             self.__send_packet(packet)
-
 
     def __send_packet(self, packet):
         try:
@@ -82,8 +79,8 @@ class Sender:
             crc = PacketCreator.get_CRC(serialized_packet)
             hexdump = self.packet_id.to_bytes(1, byteorder='big')
             id = hexdump.rjust(1, b'0')
-            #print("Serialized packet:", serialized_packet)
-            #print("Crc:", crc)
+            # print("Serialized packet:", serialized_packet)
+            # print("Crc:", crc)
             print("{} sent to {}:{}".format(len(crc + id + serialized_packet), self.ip_dst, self.port_dst))
 
             # Send the data to the receiver's address
@@ -91,7 +88,6 @@ class Sender:
 
         except Exception as e:
             print(f"Error sending packet: {e}")
-
 
     def send_file(self, data, file_name):
         # Send name
@@ -101,7 +97,7 @@ class Sender:
         packet_to_send = PacketCreator.start_packet(data)
         self.__send_packet_with_ack(packet_to_send)
         # Send file data
-        blocks = [data[i:i + 1024-108] for i in range(0, len(data), 1024-108)]
+        blocks = [data[i:i + 1024 - 108] for i in range(0, len(data), 1024 - 108)]
         total = len(data)
         sent = 0
         for i in range(len(blocks)):
