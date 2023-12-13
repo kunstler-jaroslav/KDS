@@ -136,11 +136,11 @@ class Receiver:
 
 if __name__ == "__main__":
     #local_ip = Receiver.get_local_ip()
-    local_ip = "127.0.0.1"
-    listening_port = 50000
+    local_ip = "192.168.43.195"
+    listening_port = 15000
 
     # destination_ip = "127.0.0.1"  # Is unknown and set after first protocol
-    destination_port = 50001  # 50001
+    destination_port = 14001  # 50001
 
     if local_ip:
         receiver = Receiver(local_ip, listening_port, destination_port)

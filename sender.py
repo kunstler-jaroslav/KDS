@@ -127,12 +127,12 @@ class Sender:
 if __name__ == "__main__":
     # Sender
     # local_ip = Sender.get_local_ip()
-    local_ip = "127.0.0.1"
-    local_port = 50001  # 50001
+    local_ip = "192.168.43.195"
+    local_port = 15001  # 50001
 
     # Receiver
-    destination_ip = "127.0.0.1"
-    destination_port = 50000
+    destination_ip = "192.168.43.196"
+    destination_port = 14000
 
     bt = Sender.file_to_byte_string(r"/home/frederik/Desktop/dog.jpg")
     fn = "dog.jpg"
