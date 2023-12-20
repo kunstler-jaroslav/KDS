@@ -20,8 +20,8 @@ class Sender:
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec.bind((self.ip_src, self.port_src))
-        self.s_send.settimeout(10)
-        self.s_rec.settimeout(10)
+        self.s_send.settimeout(3)
+        self.s_rec.settimeout(3)
         self.packet_id = 0
 
     @staticmethod
@@ -104,7 +104,7 @@ class Sender:
             packet_to_send = PacketCreator.data_packet(blocks[i])
             self.__send_packet_with_ack(packet_to_send)
             sent += len(blocks[i])
-            print("sent {}%".format((sent / total * 100).__round__(2)))
+            print("sent {}%".format((sent / total * 100).__round__(2)), "packet id:", self.packet_id)
             os.system('cls' if os.name == 'nt' else 'clear')
         # Send file hash
         packet_to_send = PacketCreator.hash_packet(data)
@@ -123,11 +123,11 @@ class Sender:
 if __name__ == "__main__":
     # Sender
     # local_ip = Sender.get_local_ip()
-    local_ip = "192.168.43.195"
+    local_ip = "127.0.0.1"
     local_port = 15001  # 50001
 
     # Receiver
-    destination_ip = "192.168.43.196"
+    destination_ip = "127.0.0.1"
     destination_port = 14000
 
     bt = Sender.file_to_byte_string(r"/home/frederik/Desktop/dog.jpg")
