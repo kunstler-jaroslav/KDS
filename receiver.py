@@ -27,27 +27,6 @@ class Receiver:
         self.s_rec.settimeout(100)
         self.last_rcvd_id = -1
 
-    @staticmethod
-    def get_local_ip():
-        try:
-            # Create a socket object
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.settimeout(0.1)
-
-            # Connect to an external server (doesn't actually send data)
-            s.connect(('10.255.255.255', 1))
-
-            # Get the local IP address
-            loc_ip = s.getsockname()[0]
-
-            # Close the socket
-            s.close()
-
-            return str(loc_ip)
-        except Exception as e:
-            print(f"Error getting local IP address: {e}")
-            return None
-
     def __send_packet(self, packet):
         try:
             # Serialize the Packet object using pickle
@@ -82,7 +61,7 @@ class Receiver:
 
             serialized_packet, sender_address = self.s_rec.recvfrom(1024)
             CRC_received, id_received, serialized_packet = serialized_packet[:4], serialized_packet[
-                                                                                  4:5], serialized_packet[5:]
+                                                                                  4:6], serialized_packet[6:]
             print("id:", id_received)
             # print(first_four_bytes)
             # print(PacketCreator.get_CRC(serialized_packet))
@@ -138,7 +117,6 @@ class Receiver:
 
 
 if __name__ == "__main__":
-    # local_ip = Receiver.get_local_ip()
     local_ip = "192.168.43.195"
     listening_port = 15000
 
