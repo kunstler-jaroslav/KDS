@@ -7,7 +7,7 @@ class Receiver:
 
     def __init__(self, ip_src, port_src):
         self.ip_src = ip_src
-        self.ip_dst = "127.0.0.1"
+        self.ip_dst = "127.0.0.0"
         self.port_src = port_src
 
     @staticmethod
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     received_file_path = "path/to/save/received/file.txt"
     listening_port = 5000
     local_ip = Receiver.get_local_ip()
+    print(local_ip)
     if local_ip:
         receiver = Receiver(local_ip, listening_port)
         receiver.receive_file(received_file_path)
