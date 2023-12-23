@@ -21,20 +21,13 @@ class Packet:
         self.packet_type = packet_type
         self.length = length
         self.data = data
-        #self.id = None
-
-    def get_content(self):
-        return [self.packet_type, self.length, self.data, self.id]
-
-    #def set_id(self, id):
-     #   self.id = id
 
 
 class PacketCreator:
 
     @staticmethod
-    def start_packet(data):
-        pack = Packet(PacketTypes.start, len(data), None)
+    def start_packet(data, length_blocks):
+        pack = Packet(PacketTypes.start, len(data), length_blocks)
         return pack
 
     @staticmethod
@@ -53,8 +46,8 @@ class PacketCreator:
         return pack
 
     @staticmethod
-    def ack_packet():
-        pack = Packet(PacketTypes.ack, 0, None)
+    def ack_packet(ids):
+        pack = Packet(PacketTypes.ack, len(ids), ids)
         return pack
 
     @staticmethod
@@ -116,10 +109,7 @@ class File:
     def save_file(self):
         print(len(self.data))
         print(self.length)
-        if len(self.data) == self.length:
-            with open(self.name, 'wb') as file:
-                file.write(self.data)
-                file.close()
-            print("File saved successfully")
-        else:
-            print("Error detected, repeat the process")
+        with open(self.name, 'wb') as file:
+            file.write(self.data)
+            file.close()
+        print("File saved successfully")

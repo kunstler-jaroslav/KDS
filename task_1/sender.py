@@ -82,7 +82,7 @@ class Sender:
 
 if __name__ == "__main__":
     bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\dog.jpg")
-    destination_host = "10.0.0.223"
+    destination_host = "192.168.43.211"
     destination_port = 5000
     local_ip = Sender.get_local_ip()
     print(local_ip)
