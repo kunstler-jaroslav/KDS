@@ -61,6 +61,7 @@ class Receiver:
                 self.highest_id = block[0]
 
     def prepare_file_save(self, blocks):
+        # self.send_ack(blocks)
         blocks = sorted(blocks, key=lambda x: x[0])
         file = File()
         for block in blocks:
@@ -80,6 +81,7 @@ class Receiver:
 
             if pack.packet_type == PacketTypes.stop:
                 file.save_file()
+        # self.send_ack(blocks)
 
     def receive_file(self):
 
@@ -100,9 +102,10 @@ class Receiver:
                 CRC_received, id_received, serialized_packet = serialized_packet[:4], serialized_packet[
                                                                                   4:6], serialized_packet[6:]
 
-                self.s_rec.settimeout(0.2)
+                self.s_rec.settimeout(0.01)
                 if CRC_received != PacketCreator.get_CRC(serialized_packet):
-                    print("Received wrong CRC, sending nack")
+                    pass
+                    # print("Received wrong CRC, sending nack")
 
                 else:
 
@@ -128,14 +131,24 @@ class Receiver:
                     self.s_rec.settimeout(10)
                     for block in actual_block:
                         if block[0] not in ids:
-                            print(f"block[0]: {block[0]} - {ids}")
                             all_blocks.append(block)
                             ids.append(block[0])
+                            print(f"block[0]: {block[0]} - {ids}")
                     self.send_ack(actual_block)
                     print(f"length of all {len(all_blocks)}, should be {all_blocks_length}")
                     if all_blocks_length is not None and len(all_blocks) == all_blocks_length:
+                        self.send_ack(actual_block)
+                        self.send_ack(actual_block)
                         self.prepare_file_save(all_blocks)
+                        self.send_ack(actual_block)
+                        self.send_ack(actual_block)
+                        self.send_ack(actual_block)
                         break
+                    elif all_blocks_length is not None and len(all_blocks) > all_blocks_length:
+                        unique_ids = {}
+                        filtered_array = [arr for arr in all_blocks if unique_ids.setdefault(arr[0], None) is None]
+                        self.prepare_file_save(filtered_array)
+                        self.send_ack(actual_block)
 
                     actual_block = []
 
@@ -148,5 +161,5 @@ if __name__ == "__main__":
     destination_port = 14001  # 50001
 
     if local_ip:
-        receiver = Receiver(local_ip, listening_port, destination_port, 20)
+        receiver = Receiver(local_ip, listening_port, destination_port, 300)
         receiver.receive_file()

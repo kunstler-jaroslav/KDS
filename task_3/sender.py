@@ -21,8 +21,8 @@ class Sender:
         self.s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s_rec.bind((self.ip_src, self.port_src))
-        self.s_send.settimeout(3)
-        self.s_rec.settimeout(3)
+        self.s_send.settimeout(1)
+        self.s_rec.settimeout(1)
 
         self.window_size = window_size
 
@@ -87,6 +87,7 @@ class Sender:
         ret = []
         for i in range(len(packets_to_send)):
             ret.append(i)
+        print(ret[-1])
         return packets_to_send, ret
 
     def send_file(self, data, file_name):
@@ -122,9 +123,13 @@ if __name__ == "__main__":
     destination_ip = "127.0.0.1"
     destination_port = 14000
 
-    bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\nature.jpg")
-    fn = "nature.jpg"
+    bt = Sender.file_to_byte_string(r"C:\Users\kunst\Desktop\nature2.jpg")
+    fn = "nature2.jpg"
 
     if local_ip:
-        sender = Sender(local_ip, local_port, destination_ip, destination_port, 20)
+        sender = Sender(local_ip, local_port, destination_ip, destination_port, 300)
+        start = time.time()
         sender.send_file(bt, fn)
+        end = time.time()
+        run_time = end - start
+        print(run_time)
